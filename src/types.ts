@@ -9,3 +9,30 @@ export interface IUser {
   accessToken: string | null;
   refreshToken: string | null;
 }
+export interface IPost {
+  id: number;
+  title: string;
+  content: string;
+  category: string; 
+  category_id: number;
+  author: string; 
+  extra_info?: string | null;
+  created_at: string; 
+  updated_at: string; 
+}
+
+export interface IPostCreate {
+  title: string;
+  content: string;
+  category_id: number;
+  extra_info?: string | null;
+}
+
+export interface ICategory {
+  id: number;
+  name: string;
+}
+
+export interface ICategoryCreate {
+  name: string;
+}
