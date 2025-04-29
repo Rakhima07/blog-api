@@ -1,19 +1,11 @@
-import {useAuthStore} from '../store/useAuthStore.ts';
-import { PostsList } from './PostsList.tsx';
-export const Home = () => {
-  const { accessToken } = useAuthStore();
+// import { useAuthStore } from '../store/useAuthStore';
+import { PostsList } from './PostsList';
 
+export const Home = () => {
   return (
     <div>
-      {accessToken ? (
-        <PostsList />
-      ) : (
-        <div>
-          Пожалуйста, войдите чтобы увидеть посты.
-        </div>
-      )}
+      <PostsList />
     </div>
   );
 };
-
 
