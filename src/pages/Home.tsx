@@ -1,12 +1,10 @@
-import {useAuthStore} from '../store/useAuthStore.ts';
+// import { useAuthStore } from '../store/useAuthStore';
+import { PostsList } from './PostsList';
 
 export const Home = () => {
- const store = useAuthStore()
-
-  console.log('store', store)
   return (
     <div>
-      Hello
+      <PostsList />
     </div>
   );
 };
