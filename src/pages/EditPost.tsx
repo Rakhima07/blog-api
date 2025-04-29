@@ -1,40 +1,63 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axiosApi from '../axiosApi';
-import { IPost } from '../types';
-import { Container, TextField, Button, Typography, Paper } from '@mui/material';
+import { IPost, ICategory } from '../types';
+import { Container, TextField, Button, Typography, Paper, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 
 export const EditPost = () => {
   const { id } = useParams<{ id: string }>();
   const [post, setPost] = useState<IPost | null>(null);
+  const [categories, setCategories] = useState<ICategory[]>([]);
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    axiosApi.get<IPost>(`/posts/${id}/`).then(res => setPost(res.data));
+    const fetchData = async () => {
+      try {
+        const postResponse = await axiosApi.get<IPost>(`/posts/${id}/`);
+        setPost(postResponse.data);
+
+        const categoriesResponse = await axiosApi.get<ICategory[]>('/categories/');
+        setCategories(categoriesResponse.data);
+      } catch (error) {
+        setError('Failed to load data.');
+        console.error(error);
+      }
+    };
+    fetchData();
   }, [id]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!post) return;
 
+    setLoading(true);
+    setError('');
+
     try {
       await axiosApi.patch(`/posts/${id}/`, {
         title: post.title,
         content: post.content,
-        category: post.category,
+        category_id: post.category_id,
         author: post.author,
-        extra_info: post.extra_info,
+        extra_info: post.extra_info || null,
       });
       navigate('/posts');
-    } catch {
-      setError('Ошибка при редактировании поста');
+    } catch (error) {
+      setError('Failed to edit post.');
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { name: string; value: unknown } }
+  ) => {
     if (!post) return;
-    setPost({ ...post, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setPost({ ...post, [name]: value });
   };
 
   if (!post) return <Typography>Loading...</Typography>;
@@ -66,15 +89,24 @@ export const EditPost = () => {
             multiline
             rows={4}
           />
-          <TextField
-            fullWidth
-            label="Category"
-            name="category"
-            value={post.category}
-            onChange={handleChange}
-            required
-            margin="normal"
-          />
+          <FormControl fullWidth margin="normal" required>
+            <InputLabel>Category</InputLabel>
+            <Select
+              name="category_id"
+              value={post.category_id || ''}
+              onChange={handleChange}
+              label="Category"
+            >
+              <MenuItem value="" disabled>
+                Select a category
+              </MenuItem>
+              {categories.map((category) => (
+                <MenuItem key={category.id} value={category.id}>
+                  {category.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
             fullWidth
             label="Author"
@@ -97,7 +129,13 @@ export const EditPost = () => {
               {error}
             </Typography>
           )}
-          <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
+          <Button
+            type="submit"
+            variant="contained"
+            fullWidth
+            disabled={loading}
+            sx={{ mt: 2 }}
+          >
             Save
           </Button>
         </form>

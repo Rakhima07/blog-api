@@ -34,7 +34,6 @@ axiosApi.interceptors.response.use(
           return Promise.reject(error);
         }
 
-        // Запрос на обновление токенов
         const { data } = await axios.post(`${API_URL}/token/refresh/`, {
           refresh: refreshToken,
         });
@@ -42,12 +41,12 @@ axiosApi.interceptors.response.use(
         localStorage.setItem('accessToken', data.access);
         localStorage.setItem('refreshToken', data.refresh);
 
-        // Подставляем новый токен в заголовки и повторяем оригинальный запрос
+       
         originalRequest.headers.Authorization = `Bearer ${data.access}`;
         return axiosApi(originalRequest);
       } catch (refreshError) {
         console.error('Token refresh failed', refreshError);
-        // Если рефреш неудачный — можно удалить токены и, например, редиректить на логин
+        
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         return Promise.reject(refreshError);

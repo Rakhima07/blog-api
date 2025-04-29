@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { Container, TextField, Button, Box, Typography, Paper } from '@mui/material';
+import { useState, useEffect } from 'react';
+import { Container, TextField, Button, Box, Typography, Paper, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import axiosApi from '../axiosApi.ts';
 import { useNavigate } from 'react-router';
+import { ICategory, IPostCreate } from '../types';
 
 export const CreatePost = () => {
   const navigate = useNavigate();
@@ -9,24 +10,38 @@ export const CreatePost = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [extraInfo, setExtraInfo] = useState('');
+  const [categoryId, setCategoryId] = useState<number | ''>('');
+  const [categories, setCategories] = useState<ICategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axiosApi.get<ICategory[]>('/categories/');
+        setCategories(response.data);
+      } catch (error) {
+        setError('Failed to load categories.');
+        console.error(error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleSubmit = async () => {
     setLoading(true);
     setError('');
 
     try {
-      if (!title || !content ) {
+      if (!title || !content || !categoryId) {
         setError('Please fill in all required fields.');
         return;
       }
 
-      const requestData = {
+      const requestData: IPostCreate = {
         title,
         content,
-        category_id: 1,
-        // TODO: Заменить на реальную категорию из бекэнда!
+        category_id: categoryId as number,
         extra_info: extraInfo || null,
       };
 
@@ -69,6 +84,24 @@ export const CreatePost = () => {
             required
           />
 
+          <FormControl fullWidth margin="normal" required>
+            <InputLabel>Category</InputLabel>
+            <Select
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value as number)}
+              label="Category"
+            >
+              <MenuItem value="" disabled>
+                Select a category
+              </MenuItem>
+              {categories.map((category) => (
+                <MenuItem key={category.id} value={category.id}>
+                  {category.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
           <TextField
             fullWidth
             label="Extra Info"
@@ -97,4 +130,3 @@ export const CreatePost = () => {
     </Container>
   );
 };
-
