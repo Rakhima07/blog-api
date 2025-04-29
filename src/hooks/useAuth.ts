@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import axiosApi from '../axiosApi';
 import { IUser } from '../types';
 
 export const useAuth = () => {
@@ -7,33 +6,18 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const accessToken = localStorage.getItem('accessToken');
-      if (!accessToken) {
-        setUser(null);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const response = await axiosApi.get('/users/me/'); 
-        setUser({
-          id: response.data.id,
-          username: response.data.username,
-          accessToken,
-          refreshToken: localStorage.getItem('refreshToken'),
-        });
-      } catch (error) {
-        console.error('Failed to verify user:', error);
-        setUser(null);
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken) {
+      setUser({
+        id: null,
+        username: null,
+        accessToken,
+        refreshToken: localStorage.getItem('refreshToken'),
+      });
+    } else {
+      setUser(null);
+    }
+    setLoading(false);
   }, []);
 
   return { user, loading };
