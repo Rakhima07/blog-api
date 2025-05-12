@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axiosApi from '../axiosApi';
 import { IPost } from '../types';
-import { Container, Typography, Button, CircularProgress } from '@mui/material';
+import { Container, Typography, Button, CircularProgress, Box } from '@mui/material';
 
 export const PostDetails = () => {
   const { id } = useParams<{ id: string }>();
   const [post, setPost] = useState<IPost | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const isAuthenticated = !!localStorage.getItem('accessToken');
 
   useEffect(() => {
     axiosApi.get<IPost>(`/posts/${id}/`)
@@ -31,9 +32,12 @@ export const PostDetails = () => {
       <Typography variant="subtitle2">Author: {post.author}</Typography>
       <Typography variant="body1">{post.content}</Typography>
       {post.extra_info && <Typography color="textSecondary">Extra: {post.extra_info}</Typography>}
-      <Button variant="contained"sx={{ mt: 2, mr: 2 }} onClick={() => navigate(`/edit-post/${post.id}`)}>Edit</Button>
-      <Button color="error" variant="contained" onClick={handleDelete}>Delete</Button>
-    
+      {isAuthenticated && (
+        <>
+          <Button variant="contained" sx={{ mt: 2, mr: 2 }} onClick={() => navigate(`/edit-post/${post.id}`)}>Edit</Button>
+          <Button color="error" variant="contained" onClick={handleDelete}>Delete</Button>
+        </>
+      )}    
     </Container>
   );
 };
